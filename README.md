@@ -26,8 +26,7 @@
 
 ‼️В коды ChatServer.java, ChatClient.java и  ChatIntegrationTest.java для удобства добавлены комментарии.
 
-
-###✅ **Работа программы**
+### ✅ Работа программы
 
 1. Запустить первое приложение **ChatServer**
  
