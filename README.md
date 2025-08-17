@@ -11,6 +11,7 @@
 │ └── ChatIntegrationTest.java
 ├── settings.txt
 └── file.log
+
 Файл `settings.txt`содержит порт для сервера (port=5000).
 Файл  file.log содержит логи сообщени1 (как серверных, так и клиентских).
 ‼️В коды ChatServer.java, ChatClient.java и  ChatIntegrationTest.java для удобства добавлены комментарии.
