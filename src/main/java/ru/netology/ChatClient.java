@@ -13,7 +13,8 @@ import java.util.*;
 public class ChatClient {
     private final String host;            // адрес сервера
     private final int port;               // порт сервера
-    private final String logFile = "file.log"; // файл логов сервера
+    private final String logFile = "logs/file.log";  // файл логов (логи в папке logs)
+
 
     // Конструктор — читаем порт из файла настроек
     public ChatClient(String host, String settingsFile) throws IOException {
@@ -22,14 +23,22 @@ public class ChatClient {
     }
 
     // Чтение порта из файла
-    private int readPortFromSettings(String settingsFile) throws IOException {
-        for (String line : Files.readAllLines(Path.of(settingsFile))) {
-            line = line.trim();
-            if (line.startsWith("port=")) {
-                return Integer.parseInt(line.split("=")[1]);
+        private int readPortFromSettings(String settingsFile) throws IOException {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(settingsFile);
+        if (inputStream == null) {
+            throw new IllegalArgumentException("Файл " + settingsFile + " не найден в resources");
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("port=")) {
+                    return Integer.parseInt(line.split("=")[1]);
+                }
             }
         }
-        throw new IllegalArgumentException("Порт не найден в файле настроек");
+        throw new IllegalArgumentException("Порт не найден в " + settingsFile);
     }
 
     // Основной метод клиента
@@ -88,27 +97,6 @@ public class ChatClient {
         String line = String.format("[%s] %s: %s", timestamp, sender, message);
         try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(logFile, true)))) {
             pw.println(line);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Метод для тестов (отправляет 1 сообщение и получает ответ)
-    public void start(String message) {
-        try (
-                Socket socket = new Socket(host, port);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
-        ) {
-            System.out.println("Тестовый клиент подключился к серверу " + host + ":" + port);
-            out.println(message);
-            logMessage("Клиент (тест)", message);
-
-            String serverResponse = in.readLine();
-            if (serverResponse != null) {
-                System.out.println("Ответ сервера: " + serverResponse);
-                logMessage("Сервер", serverResponse);
-            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -16,7 +16,9 @@ public class ChatServer {
     private final int port;                        // порт сервера
     private final ExecutorService pool = Executors.newFixedThreadPool(64); // пул потоков для клиентов
     private final Set<PrintWriter> clientOutputs = new HashSet<>();        // список потоков для рассылки сообщений
-    private final String logFile = "file.log";     // файл логов
+    private final String logFile = "logs/file.log";     // файл логов (логи в папке logs)
+
+
 
     private volatile boolean running = false;      // индикатор работы сервера
     private ServerSocket serverSocket;             // сокет сервера
@@ -24,7 +26,8 @@ public class ChatServer {
     // Конструктор — чтение порта из файла настроек
     public ChatServer(String settingsFile) throws IOException {
         this.port = readPortFromSettings(settingsFile);
-    }
+
+        }
 
     // Конструктор — вручную указываем порт (для тестов)
     public ChatServer(int port) {
@@ -38,13 +41,21 @@ public class ChatServer {
 
     // Чтение порта из файла настроек
     private int readPortFromSettings(String settingsFile) throws IOException {
-        for (String line : Files.readAllLines(Path.of(settingsFile))) {
-            line = line.trim();
-            if (line.startsWith("port=")) {
-                return Integer.parseInt(line.split("=")[1]);
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(settingsFile);
+        if (inputStream == null) {
+            throw new IllegalArgumentException("Файл " + settingsFile + " не найден в resources");
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("port=")) {
+                    return Integer.parseInt(line.split("=")[1]);
+                }
             }
         }
-        throw new IllegalArgumentException("Порт не найден в файле настроек");
+        throw new IllegalArgumentException("Порт не найден в " + settingsFile);
     }
 
     // Запуск сервера
